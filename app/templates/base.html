@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}TravelPlanner{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              navy: "#1A1A2E",
+              coral: "#E94560",
+              canvas: "#F6F7FB",
+            },
+            fontFamily: { sans: ["Inter", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body class="bg-canvas font-sans text-gray-800 min-h-screen flex">
+    <aside class="w-64 min-h-screen bg-navy flex flex-col shrink-0">
+      <div class="px-6 py-8">
+        <span class="text-white text-xl font-bold tracking-tight"
+          >TravelPlanner</span
+        >
+      </div>
+      <nav class="flex-1 px-4 space-y-1">
+        <a
+          href="{{ url_for('web.dashboard') }}"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition {% if request.endpoint == 'web.dashboard' %}bg-white/10 text-white{% endif %}"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 9.75L12 3l9 6.75V21a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75v-4.5h-4.5V21a.75.75 0 01-.75.75H3.75A.75.75 0 013 21V9.75z"
+            />
+          </svg>
+          Dashboard
+        </a>
+        <a
+          href="{{ url_for('web.new_project') }}"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition {% if request.endpoint == 'web.new_project' %}bg-white/10 text-white{% endif %}"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
+          </svg>
+          New Trip
+        </a>
+      </nav>
+      <div class="px-4 py-6 border-t border-white/10">
+        <a
+          href="{{ url_for('web.logout') }}"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-400 hover:bg-white/10 hover:text-white transition"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M18 12H9m0 0l3-3m-3 3l3 3"
+            />
+          </svg>
+          Log out
+        </a>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="px-8 pt-6 space-y-2" id="flash-container">
+        {% for category, message in messages %}
+        <div
+          class="flash-msg flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200 {% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}"
+        >
+          {{ message }}
+          <button
+            onclick="this.parentElement.remove()"
+            class="ml-4 opacity-60 hover:opacity-100"
+          >
+            &times;
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <div class="flex-1 px-8 py-8">{% block content %}{% endblock %}</div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

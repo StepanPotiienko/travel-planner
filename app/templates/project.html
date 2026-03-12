@@ -1,0 +1,422 @@
+{% extends "base.html" %} {% block title %}{{ project.name }} — TravelPlanner{%
+endblock %} {% block content %}
+<div class="flex items-start justify-between gap-4 mb-8">
+  <div>
+    <nav class="text-sm text-gray-400 mb-2 flex items-center gap-1.5">
+      <a
+        href="{{ url_for('web.dashboard') }}"
+        class="hover:text-navy transition"
+        >Trips</a
+      >
+      <span>/</span>
+      <span class="text-navy font-medium">{{ project.name }}</span>
+    </nav>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-navy">{{ project.name }}</h1>
+      {% if project.status == 'completed' %}
+      <span
+        class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full"
+      >
+        Completed
+      </span>
+      {% else %}
+      <span
+        class="inline-flex items-center gap-1 bg-teal-100 text-teal-700 text-xs font-semibold px-2.5 py-1 rounded-full"
+      >
+        Active
+      </span>
+      {% endif %}
+    </div>
+    {% if project.description %}
+    <p class="text-gray-500 text-sm mt-1">{{ project.description }}</p>
+    {% endif %} {% if project.city or project.country %}
+    <p class="text-xs text-gray-400 mt-1">
+      {{ [project.city, project.country] | select | join(', ') }}
+    </p>
+    {% endif %} {% if project.start_date %}
+    <p class="text-xs text-gray-400 mt-1">{{ project.start_date }}</p>
+    {% endif %}
+  </div>
+
+  <div class="flex items-center gap-2 shrink-0">
+    <a
+      href="{{ url_for('web.edit_project', project_id=project.id) }}"
+      class="bg-white border border-gray-200 hover:border-navy text-gray-700 hover:text-navy font-medium rounded-xl px-4 py-2 text-sm transition"
+    >
+      Edit
+    </a>
+    <form
+      method="POST"
+      action="{{ url_for('web.delete_project', project_id=project.id) }}"
+      onsubmit="return confirm('Delete this trip? This cannot be undone.');"
+    >
+      <button
+        type="submit"
+        class="bg-white border border-gray-200 hover:border-red-300 text-gray-500 hover:text-red-500 font-medium rounded-xl px-4 py-2 text-sm transition"
+      >
+        Delete
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if total > 0 %} {% set pct = ((visited / total * 100) | int) %}
+<div class="bg-white rounded-2xl shadow-card p-5 mb-6 flex items-center gap-5">
+  <div class="flex-1">
+    <div class="flex justify-between text-xs text-gray-400 mb-2">
+      <span>{{ visited }} of {{ total }} places visited</span>
+      <span>{{ pct }}%</span>
+    </div>
+    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div
+        class="h-full rounded-full transition-all {% if project.status == 'completed' %}bg-emerald-400{% else %}bg-coral{% endif %}"
+        style="width: {{ pct }}%"
+      ></div>
+    </div>
+  </div>
+  {% if total < max_places %}
+  <button
+    onclick="openModal('add-place-modal')"
+    class="shrink-0 bg-coral hover:bg-coral/90 text-white font-semibold rounded-xl px-4 py-2 text-sm transition flex items-center gap-1.5"
+  >
+    <svg
+      class="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 4.5v15m7.5-7.5h-15"
+      />
+    </svg>
+    Add place
+  </button>
+  {% else %}
+  <span class="shrink-0 text-xs text-gray-400"
+    >Max {{ max_places }} places reached</span
+  >
+  {% endif %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl shadow-card p-8 mb-6 text-center">
+  <p class="text-gray-400 text-sm mb-4">
+    No places added yet. Start building your itinerary!
+  </p>
+  <button
+    onclick="openModal('add-place-modal')"
+    class="bg-coral hover:bg-coral/90 text-white font-semibold rounded-xl px-5 py-2.5 text-sm transition"
+  >
+    Add first place
+  </button>
+</div>
+{% endif %}
+
+{% if places %}
+<div class="space-y-3">
+  {% for place in places %}
+  <div class="bg-white rounded-2xl shadow-card p-5 flex items-start gap-4">
+    <div class="shrink-0 mt-0.5">
+      {% if place.visited %}
+      <span
+        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"
+        >&#10003;</span
+      >
+      {% else %}
+      <span
+        class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-sm"
+        >&ndash;</span
+      >
+      {% endif %}
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <p class="font-semibold text-navy text-sm">{{ place.title }}</p>
+      {% if place.artist_display %}
+      <p class="text-gray-400 text-xs mt-0.5">{{ place.artist_display }}</p>
+      {% endif %} {% if place.notes %}
+      <p class="text-gray-600 text-sm mt-2 bg-gray-50 rounded-lg px-3 py-2">
+        {{ place.notes }}
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="shrink-0 flex items-center gap-1.5">
+      <button
+        onclick="openEditModal({{ place.id }}, {{ place.visited | tojson }}, {{ place.notes | tojson if place.notes else 'null' }})"
+        class="text-gray-400 hover:text-navy transition text-xs font-medium border border-gray-200 hover:border-navy rounded-lg px-3 py-1.5"
+      >
+        Edit
+      </button>
+      <form
+        method="POST"
+        action="{{ url_for('web.delete_place', project_id=project.id, place_id=place.id) }}"
+        onsubmit="return confirm('Remove \"{{ place.title }}\" from this trip?');"
+      >
+        <button
+          type="submit"
+          class="text-gray-400 hover:text-red-500 transition text-xs font-medium border border-gray-200 hover:border-red-300 rounded-lg px-3 py-1.5"
+        >
+          Delete
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div
+  id="add-place-modal"
+  class="modal-backdrop hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-lg font-bold text-navy">Add a place</h2>
+      <button
+        onclick="closeModal('add-place-modal')"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+    <form
+      method="POST"
+      action="{{ url_for('web.add_place', project_id=project.id) }}"
+      class="space-y-4"
+    >
+      <div class="relative">
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1.5"
+          for="place_name"
+        >
+          Place name <span class="text-coral">*</span>
+        </label>
+        <input
+          id="place_name"
+          name="name"
+          type="text"
+          required
+          autocomplete="off"
+          placeholder="e.g. Colosseum"
+          class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral transition"
+        />
+        <ul
+          id="place-suggestions"
+          class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden text-sm"
+        ></ul>
+        <p class="text-xs text-gray-400 mt-1.5">
+          Search by landmark, museum, neighbourhood, or any point of interest{%
+          if project.city or project.country %} &mdash; results scoped to
+          <strong
+            >{{ [project.city, project.country] | select | join(', ') }}</strong
+          >{% endif %}.
+        </p>
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button
+          type="submit"
+          class="bg-coral hover:bg-coral/90 text-white font-semibold rounded-xl px-5 py-2.5 text-sm transition"
+        >
+          Add place
+        </button>
+        <button
+          type="button"
+          onclick="closeModal('add-place-modal')"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl px-5 py-2.5 text-sm transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  id="edit-place-modal"
+  class="modal-backdrop hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+>
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-lg font-bold text-navy">Edit place</h2>
+      <button
+        onclick="closeModal('edit-place-modal')"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+    <form id="edit-place-form" method="POST" action="" class="space-y-4">
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1.5"
+          for="edit-notes"
+          >Notes</label
+        >
+        <textarea
+          id="edit-notes"
+          name="notes"
+          rows="3"
+          placeholder="Add personal notes about this place…"
+          class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral transition resize-none"
+        ></textarea>
+      </div>
+      <div class="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="edit-visited"
+          name="visited"
+          value="1"
+          class="w-4 h-4 rounded border-gray-300 text-coral accent-coral"
+        />
+        <label for="edit-visited" class="text-sm font-medium text-gray-700"
+          >Mark as visited</label
+        >
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button
+          type="submit"
+          class="bg-coral hover:bg-coral/90 text-white font-semibold rounded-xl px-5 py-2.5 text-sm transition"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onclick="closeModal('edit-place-modal')"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl px-5 py-2.5 text-sm transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function openEditModal(placeId, visited, notes) {
+    const base = "{{ url_for('web.project_detail', project_id=project.id) }}";
+    document.getElementById("edit-place-form").action =
+      `/projects/{{ project.id }}/places/${placeId}/update`;
+    document.getElementById("edit-notes").value = notes || "";
+    document.getElementById("edit-visited").checked = visited;
+    openModal("edit-place-modal");
+  }
+  (function () {
+    const input = document.getElementById("place_name");
+    const list = document.getElementById("place-suggestions");
+    const autocompleteUrl =
+      "{{ url_for('web.autocomplete_places', project_id=project.id) }}";
+    let debounceTimer = null;
+
+    function hideSuggestions() {
+      list.innerHTML = "";
+      list.classList.add("hidden");
+    }
+
+    input.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      const q = input.value.trim();
+      if (q.length < 2) {
+        hideSuggestions();
+        return;
+      }
+      debounceTimer = setTimeout(async function () {
+        try {
+          const res = await fetch(
+            autocompleteUrl + "?q=" + encodeURIComponent(q)
+          );
+          if (!res.ok) return;
+          const suggestions = await res.json();
+          list.innerHTML = "";
+          if (!suggestions.length) {
+            hideSuggestions();
+            return;
+          }
+          suggestions.forEach(function (s) {
+            const li = document.createElement("li");
+            li.className =
+              "px-4 py-2.5 hover:bg-gray-50 cursor-pointer flex flex-col gap-0.5";
+            li.innerHTML =
+              `<span class="font-medium text-navy">${s.name}</span>` +
+              (s.location
+                ? `<span class="text-xs text-gray-400">${s.location}</span>`
+                : "");
+            li.addEventListener("mousedown", function (e) {
+              e.preventDefault(); // keep input focused
+              input.value = s.name;
+              hideSuggestions();
+            });
+            list.appendChild(li);
+          });
+          list.classList.remove("hidden");
+        } catch (_) {
+          hideSuggestions();
+        }
+      }, 300);
+    });
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") hideSuggestions();
+      if (e.key === "ArrowDown") {
+        const first = list.querySelector("li");
+        if (first) first.focus();
+        e.preventDefault();
+      }
+    });
+
+    list.addEventListener("keydown", function (e) {
+      const items = Array.from(list.querySelectorAll("li"));
+      const idx = items.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" && idx < items.length - 1) {
+        items[idx + 1].focus();
+        e.preventDefault();
+      } else if (e.key === "ArrowUp") {
+        if (idx > 0) items[idx - 1].focus();
+        else input.focus();
+        e.preventDefault();
+      } else if (e.key === "Enter" && idx >= 0) {
+        input.value = items[idx].querySelector("span").textContent;
+        hideSuggestions();
+        input.focus();
+        e.preventDefault();
+      } else if (e.key === "Escape") {
+        hideSuggestions();
+        input.focus();
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!input.contains(e.target) && !list.contains(e.target)) {
+        hideSuggestions();
+      }
+    });
+  })();
+</script>
+{% endblock %}
