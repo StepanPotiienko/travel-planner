@@ -37,29 +37,3 @@ docker compose up --build
 
 The app will be available at [http://localhost:5000](http://localhost:5000).
 The SQLite database is persisted in a named Docker volume (`db_data`).
-
----
-
-## REST API
-
-All API endpoints are under `/api/` and require **HTTP Basic Authentication**.
-
-### Projects
-
-| Method   | Endpoint             | Description                                      |
-| -------- | -------------------- | ------------------------------------------------ |
-| `POST`   | `/api/projects`      | Create a project (with optional places)          |
-| `GET`    | `/api/projects`      | List projects (paginated, filterable)            |
-| `GET`    | `/api/projects/<id>` | Get a project with a given id                    |
-| `PUT`    | `/api/projects/<id>` | Update project information                       |
-| `DELETE` | `/api/projects/<id>` | Delete project (blocked if visited places exist) |
-
-## Finding Artwork IDs
-
-Search the Art Institute of Chicago API directly:
-
-```
-https://api.artic.edu/api/v1/artworks/search?q=monet&fields=id,title
-```
-
-Use the `id` field as `external_id` when adding a place.
