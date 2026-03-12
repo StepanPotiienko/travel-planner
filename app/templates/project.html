@@ -369,7 +369,7 @@ endblock %} {% block content %}
                 ? `<span class="text-xs text-gray-400">${s.location}</span>`
                 : "");
             li.addEventListener("mousedown", function (e) {
-              e.preventDefault(); // keep input focused
+              e.preventDefault();
               input.value = s.name;
               hideSuggestions();
             });

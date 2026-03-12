@@ -4,18 +4,15 @@
   --canvas: #f6f7fb;
 }
 
-/* Card shadow used across all cards */
 .shadow-card {
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
 }
 
-/* Smooth progress bar fill transitions */
 [style^="width:"],
 [style*=" width:"] {
   transition: width 0.4s ease;
 }
 
-/* Line clamp utilities */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
