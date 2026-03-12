@@ -11,7 +11,6 @@ places_bp = Blueprint(
     "places", __name__, url_prefix="/api/projects/<int:project_id>/places"
 )
 
-# notes are freeform but we don't want people pasting entire travel blogs
 MAX_NOTES_LENGTH = 500
 
 

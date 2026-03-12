@@ -7,7 +7,7 @@ Built with **Flask**, **SQLite**, and the **Art Institute of Chicago public API*
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url>
+git clone git@github.com:StepanPotiienko/travel-planner.git
 cd TravelPlanner
 
 # 2. Create and activate a virtual environment
